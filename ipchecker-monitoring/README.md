@@ -1,4 +1,4 @@
-# ipchecker-totalips 
+# ipchecker-monitoring
 
 
 
@@ -15,14 +15,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://repository.hal.davecutting.uk/root/ipchecker-totalips.git
+git remote add origin https://repository.hal.davecutting.uk/40125560/ipchecker-monitoring.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-- [ ] [Set up project integrations](https://repository.hal.davecutting.uk/root/ipchecker-totalips/-/settings/integrations)
+- [ ] [Set up project integrations](https://repository.hal.davecutting.uk/40125560/ipchecker-monitoring/-/settings/integrations)
 
 ## Collaborate with your team
 

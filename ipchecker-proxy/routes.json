@@ -1,0 +1,9 @@
+{
+    "/total-ips": "http://ipchecker-totalips-ingress-40125560.qpc.qubcloud.uk/",
+    "/total-empty-ips": "http://ipchecker-totalemptyips-ingress-40125560.qpc.qubcloud.uk/",
+    "/total-valid-ips/validate_ips": "http://ipchecker-totalvalidips-40125560.qpc.qubcloud.uk/validate_ips",
+    "/classify": "http://ipchecker-classify-40125560.qpc.qubcloud.uk/classify",
+    "/find-country": "http://ipchecker-countrycheck-40125560.qpc.qubcloud.uk/api/findCountry",
+    "/find-bad-ips": "http://ipchecker-badips-40125560.qpc.qubcloud.uk/index.php"
+}
+

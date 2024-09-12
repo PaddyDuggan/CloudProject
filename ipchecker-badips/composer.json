@@ -1,0 +1,12 @@
+{
+    "name": "40125560/ipchecker-badips",
+    "require-dev": {
+        "phpunit/phpunit": "^11.3"
+    },
+    "authors": [
+        {
+            "name": "40125560",
+            "email": "pduggan07@qub.ac.uk"
+        }
+    ]
+}

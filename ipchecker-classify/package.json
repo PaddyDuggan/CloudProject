@@ -1,0 +1,19 @@
+{
+  "name": "ipchecker-classify",
+  "version": "1.0.0",
+  "description": "this function will classify between ipv4 and ipv6 IP addresses",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "40125560",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "chai": "^4.5.0",
+    "mocha": "^10.7.3"
+  }
+}

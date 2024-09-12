@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>IPAddressChecker</title>
+
+<script type="text/javascript">
+
+//let totalIPURL = "http://localhost:70/";
+//let totalEmptyIPURL = "http://localhost:90/";
+//let totalValidIPURL = "http://localhost:91/";
+//let classifyURL = "http://localhost:3001/classify";
+//let findCountryURL = "http://localhost:8080/api/findCountry";
+//let findBadIPsURL = "http://localhost:92/";
+
+//let totalEmptyIPURL = "http://ipchecker-totalemptyips-ingress-40125560.qpc.qubcloud.uk/";
+//let totalIPURL = "http://ipchecker-totalips-ingress-40125560.qpc.qubcloud.uk/";
+//let totalValidIPURL = "http://ipchecker-totalvalidips-40125560.qpc.qubcloud.uk/";
+//let classifyURL = "http://ipchecker-classify-40125560.qpc.qubcloud.uk/classify";
+//let findCountryURL = "http://ipchecker-countrycheck-40125560.qpc.qubcloud.uk/api/findCountry";
+//let findBadIPsURL = "http://ipchecker-badips-40125560.qpc.qubcloud.uk/";
+
+// All requests go through the proxy
+// let proxyBaseURL = "http://ipchecker-proxy-40125560.qpc.qubcloud.uk/";
+
+// Three available URLs for the proxy
+let proxyURLs = [
+    "http://ipchecker-proxy-40125560.qpc.qubcloud.uk/",
+    "http://ipchecker-proxy-backup1-40125560.qpc.qubcloud.uk/",
+    "http://ipchecker-proxy-backup2-40125560.qpc.qubcloud.uk/"
+];
+
+let proxyBaseURL = '';
+
+async function setProxyBaseURL() {
+    for (const url of proxyURLs) {
+        try {
+            const response = await fetch(url);
+            if (response.ok) {
+                console.log(`Connected to proxy: ${url}`);
+                proxyBaseURL = url;
+                return;
+            } else {
+                console.error(`Failed to connect to ${url}: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(`Error connecting to ${url}: ${error}`);
+        }
+    }
+    alert('All proxies are down. Please try again later.');
+}
+
+// Call this function when the page loads
+setProxyBaseURL().then(() => {
+    if (proxyBaseURL) {
+        console.log('Proxy base URL set to:', proxyBaseURL);
+        // Continue with your application logic here, using proxyBaseURL
+    }
+});
+
+
+function displayTotalIP(total_ips)
+{
+    document.getElementById('output-text').value = 'Total IP addresses = ' + total_ips;
+
+}
+
+function displayTotalEmpty(total_empty_ips)
+{
+    document.getElementById('output-text').value = 'Total empty IP addresses = ' + total_empty_ips;
+
+}
+
+function displayTotalValid(total_valid_ips, results) {
+    // Combine the total valid count with the detailed results
+    let output = 'Total valid IP addresses = ' + total_valid_ips + '\n';
+    if (results && results.length > 0) { // Check if results array is provided and has content
+        output += results.join('\n'); // Join the results array with newlines
+    } else {
+        output += 'No detailed results available.';
+    }
+    console.log('Output to be displayed:', output); // Debugging line
+    document.getElementById('output-text').value = output; // Display in the textarea
+}
+
+
+function clearText()
+{
+    document.getElementById('input-text').value = '';
+    document.getElementById('output-text').value = '';
+}
+
+function getTotalIPs() {
+    let items = document.getElementById('input-text').value.trim(); // Get and trim the input
+
+    // Check if the input is empty
+    if (items === '') {
+        document.getElementById('output-text').value = 'Please enter at least one IP address';
+        return;
+    }
+
+    let xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                try {
+                    var response = JSON.parse(this.responseText);
+                    if (response.error) {
+                        document.getElementById('output-text').value = 'Error: ' + response.message;
+                    } else {
+                        console.log('Total IPs: ' + response.total_ips);
+                        displayTotalIP(response.total_ips);
+                    }
+                } catch (e) {
+                    console.error('Failed to parse response: ', e);
+                    document.getElementById('output-text').value = 'Error processing the results.';
+                }
+            } else {
+                console.error('Error: ' + this.statusText);
+                document.getElementById('output-text').value = 'Failed to fetch results. Status: ' + this.status;
+            }
+        }
+    };
+
+    xhttp.onerror = function() {
+        document.getElementById('output-text').value = 'Network Error: Could not connect to the server.';
+    };
+
+    xhttp.open("GET", proxyBaseURL + "/total-ips?items=" + encodeURIComponent(items), true);
+    xhttp.send();
+}
+
+
+
+function getTotalEmptyIPs() {
+    let items = document.getElementById('input-text').value.trim(); // Trim any whitespace
+
+    // Check if the input field is empty
+    if (items === '') {
+        document.getElementById('output-text').value = 'Please enter at least one IP address';
+        return; // Exit the function early
+    }
+
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                try {
+                    var response = JSON.parse(this.responseText);
+                    console.log('Total Empty IPs: ' + response.total_empty_ips);
+                    displayTotalEmpty(response.total_empty_ips); 
+                } catch (e) {
+                    console.error('Failed to parse response: ', e);
+                    document.getElementById('output-text').value = 'Error processing the results.';
+                }
+            } else {
+                console.error('Error: ' + this.statusText);
+                document.getElementById('output-text').value = 'Failed to fetch results. Status: ' + this.status;
+            }
+        }
+    };
+
+    xhttp.open("GET", proxyBaseURL + "/total-empty-ips?items=" + encodeURIComponent(items), true);
+    xhttp.send();
+}
+
+
+
+function getTotalValidIPs() {
+    let items = document.getElementById('input-text').value.trim();
+
+    // Check if the input field is empty
+    if (items === '') {
+        document.getElementById('output-text').value = 'Please enter at least one IP address';
+        return; // Exit the function early
+    }
+
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                try {
+                    var response = JSON.parse(this.responseText);
+                    console.log('Total Valid IPs: ' + response.total_valid_ips);
+                    console.log('Results: ', response.results); // Log the results array
+                    displayTotalValid(response.total_valid_ips, response.results);
+                } catch (e) {
+                    console.error('Failed to parse response: ', e);
+                    document.getElementById('output-text').value = 'Error processing the results.';
+                }
+            } else {
+                console.error('Error: ' + this.statusText);
+                document.getElementById('output-text').value = 'Please enter at least one IP address';
+            }
+        }
+    };
+
+    xhttp.open("GET", proxyBaseURL + "/total-valid-ips/validate_ips?items=" + encodeURIComponent(items), true);
+    xhttp.send();
+}
+
+function findCountry() {
+    let items = document.getElementById('input-text').value.trim();
+
+    if (!items) {
+        document.getElementById('output-text').value = 'Please enter at least one IP address';
+        return;
+    }
+
+    let ipArray = items.split(',').map(ip => ip.trim());
+
+    let data = JSON.stringify({ ips: ipArray });
+
+    let xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function () {
+    if (this.readyState == 4) {
+        if (this.status == 200) {
+            try {
+                let response = JSON.parse(this.responseText);
+                console.log('Response:', response);
+
+                // Create a formatted string from the map object
+                let output = '';
+                for (let ip in response) {
+                    if (response.hasOwnProperty(ip)) {
+                        output += `${ip} -> ${response[ip]}\n`;
+                    }
+                }
+
+                document.getElementById('output-text').value = output;
+            } catch (e) {
+                console.error('Failed to parse response: ', e);
+                document.getElementById('output-text').value = 'Error processing the results.';
+            }
+        } else {
+            console.error('Error: ' + this.statusText);
+            document.getElementById('output-text').value = 'Failed to fetch results. Status: ' + this.status;
+        }
+    }
+};
+
+
+    xhttp.open("POST", proxyBaseURL + "/find-country", true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.send(data);
+}
+
+function findBadIPs() {
+    let items = document.getElementById('input-text').value.trim();
+
+    // Check if the input is empty
+    if (items === '') {
+        document.getElementById('output-text').value = 'Please enter at least one IP address';
+        return;
+    }
+
+    let xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                try {
+                    let response = JSON.parse(this.responseText);
+                    console.log('Bad IPs: ', response.results); // Log the results array
+                    document.getElementById('output-text').value = response.results.join('\n');
+                } catch (e) {
+                    console.error('Failed to parse response: ', e);
+                    document.getElementById('output-text').value = 'Error processing the results.';
+                }
+            } else {
+                console.error('Error: ' + this.statusText);
+                document.getElementById('output-text').value = 'Failed to fetch results. Status: ' + this.status;
+            }
+        }
+    };
+
+    xhttp.open("GET", proxyBaseURL + "/find-bad-ips?items=" + encodeURIComponent(items), true);
+    xhttp.send();
+}
+
+
+
+</script>
+
+<style type="text/css">
+body  {
+    font-size: 150%;
+    font-family: monospace;
+}
+label {
+    display: inline-block;
+    width: 150px;
+    text-align: left;
+}
+#logo
+{
+    font-family: Calibri, sans-serif;
+    font-weight: lighter;
+    font-size: 30px;
+    color: #505050;
+    margin: 0.5em;
+}
+#normal-text
+{
+    font-family: Calibri, sans-serif;
+    font-size: 20px;
+    margin: 0.5em;
+}
+#ipcheck
+{
+    text-align: center;
+    margin-top: 1em;
+}
+#input-div
+{
+    text-align: center;
+    margin-top: 1em;
+    background-color:#d5d8dc  ;
+}
+#output-div
+{
+    text-align: center;
+    background-color:#808b96 ;
+}
+
+.input-items {
+      font-size: 90%;
+      color: black;
+      background-color:white ;
+      padding: 0.2em;
+      margin: 0.2em;
+      font-family: monospace;
+      letter-spacing: 0.1em;
+      width: 600px;
+
+  }
+
+.display-output {
+    font-size: 90%;
+    color: black;
+    background-color:white ;
+    padding: 0.2em;
+    margin: 0.2em;
+    font-family: monospace;
+    letter-spacing: 0.1em;
+    width: 600px;
+
+}
+
+.button-active {
+    background-color:   #2874a6  ;
+    color: white;
+    padding: 0px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    margin: 4px 2px;
+    cursor: pointer;
+    height: 50px;
+    width: 400px;
+}
+
+.button-inactive {
+    background-color: gray;
+    color: white;
+    padding: 0px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    margin: 4px 2px;
+    cursor: pointer;
+    height: 50px;
+    width: 400px;
+}
+
+.button-clear {
+    background-color:  #c0392b ;
+    color: white;
+    padding: 0px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    margin: 4px 2px;
+    cursor: pointer;
+    height: 40px;
+    width: 400px;
+}
+
+</style>
+
+</head>
+<body>
+<div id="ipcheck">
+    <div id="logo">
+        IP Address Checker
+    </div>
+    <div id="input-div">
+        <p id="normal-text">
+          Paste your IP addresses here (separated by commas)..
+        </p>
+        <textarea class="input-items" id="input-text" rows="5" cols="35" placeholder="Paste your IP addresses here.." value="">
+        </textarea>
+    </div>
+    <div id="output-div">
+       <p id="normal-text">
+          Results
+        </p>
+        <textarea class="display-output" id="output-text" rows="5" cols="35" readonly placeholder="Results here..."></textarea>
+    </div>
+    <div>
+        <button class="button-active" onclick="getTotalIPs();">Total IP addresses</button>
+    </div>
+    <div>
+        <button class="button-active" onclick="getTotalEmptyIPs();">Total empty IP addresses</button>
+    </div>
+    <div>
+        <button class="button-active" onclick="getTotalValidIPs();">Total valid IP addresses</button>
+    </div>
+    <div>
+        <button class="button-active" onclick="classifyIPs();">Classify between IPv4 and IPv6</button>
+    </div>
+    <div>
+        <button class="button-active" onclick="findCountry();">Find country information</button>
+    </div>
+    <div>
+        <button class="button-active" onclick="findBadIPs();">Find bad IP addresses</button>
+    </div>
+    <div>
+        <button class="button-clear" onclick="clearText();">Clear</button>
+    </div>
+
+</div>
+
+
+<script type="text/javascript">
+    function classifyIPs() {
+        // Get the IP addresses from the input textarea
+        let items = document.getElementById('input-text').value.trim();
+
+        // Check if the input field is empty
+        if (items === '') {
+        document.getElementById('output-text').value = 'Please enter at least one IP address';
+        return; // Exit the function early
+        }
+    
+        // Split the input into an array of IP addresses
+        let ipArray = items.split(',').map(ip => ip.trim());
+    
+        // Prepare the data to be sent in the request
+        let data = JSON.stringify({ ips: ipArray });
+    
+        // Create a new XMLHttpRequest object
+        let xhttp = new XMLHttpRequest();
+    
+        // Define the callback function to handle the response
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4) {
+                if (this.status == 200) {
+                    try {
+                        // Parse the JSON response
+                        let response = JSON.parse(this.responseText);
+                        // Display the results in the output textarea
+                        document.getElementById('output-text').value = response.results.join('\n');
+                    } catch (e) {
+                        console.error('Failed to parse response: ', e);
+                        document.getElementById('output-text').value = 'Error processing the results.';
+                    }
+                } else {
+                    console.error('Error: ' + this.statusText);
+                    document.getElementById('output-text').value = 'Please enter at least one IP address';
+                }
+            }
+        };
+    
+        // Open a POST request to the Node.js server
+        xhttp.open("POST", proxyBaseURL + "/classify", true);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        // Send the request with the IP data
+        xhttp.send(data);
+    }
+    </script>
+
+</body>
+
+<script type="text/javascript">
+</script>
+
+</html>

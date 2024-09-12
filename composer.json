@@ -1,0 +1,7 @@
+{
+    "name": "40125560/ipchecker-totalips",
+    "require-dev": {
+        "phpunit/phpunit": "11.3"
+    },
+    "require": {}
+}
